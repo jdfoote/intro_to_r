@@ -29,7 +29,7 @@ We will be using the dplyr, ggplot2, and nycflights13 packages. You will need to
 1. Opening RStudio
 2. Copying the following into the console (at the bottom left):
 ```
-    install.packages(c('dplyr','ggplot2','nycflights13'))
+install.packages(c('dplyr','ggplot2','nycflights13'))
 ```
 3. Push enter
 

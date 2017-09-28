@@ -9,6 +9,16 @@
 # If Rstudio complains that dplyr isn't installed then you need to run: install.packages('dplyr')
 library(dplyr)
 
+##################
+# Importing Data #
+##################
+
+# R has a number of tools for importing different data types.
+# We'll focus on the most common - importing CSVs
+survey_data = read.csv('anonymized_survey.csv')
+
+
+
 # For this tutorial, we'll be using a prepared dataset of flights from NYC in 2013. This is how to load it:
 # Again, run this if it isn't installed yet: install.packages("nycflights13")
 library(nycflights13)
