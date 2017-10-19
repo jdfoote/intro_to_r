@@ -25,15 +25,15 @@ RStudio is an interface that makes working with R much easier. You can download 
 
 One of the most powerful concepts in programming languages is packages (also called libraries). Packages are code that other people have written which make common tasks much simpler. You can "import" them and then reuse this code.
 
-We will be using the dplyr, ggplot2, and nycflights13 packages. You will need to install them by:
+We will be using the tidyverse, MASS, and nycflights13 packages. You will need to install them by:
 1. Opening RStudio
 2. Copying the following into the console (at the bottom left):
 ```
-install.packages(c('dplyr','ggplot2','nycflights13'))
+install.packages(c('tidyverse','MASS','nycflights13'))
 ```
 3. Push enter
 
-It should download and install these two packages. To make sure that it worked run the following in the console (again, copy and paste):
+It should download and install these packages. To make sure that it worked run the following in the RStudio console (again, copy and paste):
 
 ```
 library(nycflights)
@@ -53,7 +53,7 @@ If everything installed correctly, then you should see a scatterplot appear at t
 
 **Download materials**
 
-Download the Rmd files (intro.Rmd, community_analysis.Rmd) and CSV files (community_data.csv) files from this page by right-clicking on them and saving them to somewhere you can find them during the workshop.
+Download the R files (session_one.R, session_two.R) and CSV file (wikia_data.csv) files from this page by right-clicking on them and saving them to somewhere you can find them during the workshop.
 
 
 # Thanks
