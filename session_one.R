@@ -22,12 +22,12 @@
 # Libraries are code written by other people that can be imported into your code and reused.
 # R also uses the term 'package' to refer to the same idea.
 
-# We will be using the 'dplyr' library and syntax, so we need to import it. This tells R that we
+# We will be using the 'tidyverse' library and syntax, so we need to import it. This tells R that we
 # are going to use it and it loads the functions of the library.
 
-library(dplyr)
+library(tidyverse)
 
-# You should have already installed dplyr, but if Rstudio complains that dplyr isn't installed then you need to run: install.packages('dplyr')
+# You should have already installed tidyverse, but if Rstudio complains that tidyverse isn't installed then you need to run: install.packages('tidyverse')
 
 
 # Variables:
@@ -289,7 +289,7 @@ flights %>%
 
 # Joyplots / ridge plots are another approach
 # (to try this one run install.packages('ggridges') and library(ggridges))
-# library(ggridges)
+library(ggridges)
 flights %>%
   ggplot(mapping = aes(x=dep_time)) +
   geom_density_ridges(mapping=aes(y=carrier,fill=carrier), alpha=.7) +
