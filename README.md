@@ -36,7 +36,7 @@ install.packages(c('tidyverse','MASS','nycflights13'))
 It should download and install these packages. To make sure that it worked run the following in the RStudio console (again, copy and paste):
 
 ```
-library(nycflights)
+library(nycflights13)
 library(dplyr)
 library(ggplot2)
 
