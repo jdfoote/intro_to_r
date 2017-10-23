@@ -40,11 +40,11 @@ library(nycflights13)
 library(dplyr)
 library(ggplot2)
 
-hflights %>%
+flights %>%
   sample_n(500) %>%
-  select(ArrDelay, DepDelay) %>%
-  ggplot(aes(x=ArrDelay, y=DepDelay)) + 
-    geom_point()
+  select(arr_delay, dep_delay) %>%
+  ggplot(aes(x=arr_delay, y=dep_delay)) + 
+  geom_point()
 ```
 
 Don't worry if this code looks super confusing and doesn't make sense yet - after the workshop you'll know what all of this does!
