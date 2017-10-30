@@ -8,17 +8,31 @@
 
 # First, let's import the tidyverse library and the dataset we'll be working with.
 
+# install.packages('MASS')
+library(MASS)
 library(tidyverse)
+library(lubridate)
 
-wikia_data = read.csv('wikia_data.csv')
+
+wikia_data = read.csv('wikia_data.csv', 
+                      sep = ',',
+                      quote = '"')
 
 # Make sure it imported correctly
 head(wikia_data)
 
-# FYI, this dataset includes selected network measures and contribution measures of Wikia wikis 
-# at the point when 500 edits had been made to main pages on the wiki
 
-# We are interested in how the network of who talks to whom relates to the group's performance.
+#################
+# Data and Goal #
+#################
+
+# I study online communities and how people work together to produce shared goods.
+# For this class, we'll be looking at data about the structure of communication in 
+# thousands of online wiki communities at Wikia.com 
+
+# We are interested in how the network of who talks to whom relates to the group's performance,
+# as measured by the total amount of content added in the first 500 edits.
+
 # Networks were created by creating a directed edge between each editor of a talk page 
 # and the five previous editors of that page.
 
@@ -45,14 +59,16 @@ summary(wikia_data)
 
 # It is important to understand why data is missing. Let's look at the rows that have missing data
 
-wikia_data %>%
-  filter(is.na(talk.clustering.coef)) %>%
-  summary()
+wikia_data %>% # Take the data and pipe it
+  filter(is.na(talk.clustering.coef)) %>% # Filter it to only the NA columns
+  summary() # And provide a summary
 
 # For these wikis there is very little activity on the talk pages but it appears that
 # there is nothing wrong with the data. Because we're interested in talk networks
 # it seems reasonable to remove these
 
+# Overwrite the current wikia_data variable with a version of the dataframe that only
+# includes the non-NA items 
 wikia_data = wikia_data %>%
   filter(!is.na(talk.clustering.coef))
 
@@ -61,8 +77,10 @@ wikia_data = wikia_data %>%
 str(wikia_data)
 
 # Note that founding date is marked as a factor instead of a date. Let's change that.
+# Dates are their own type, and having them recognized as dates lets us visualize and
+# analyze temporal dimensions of the data correctly
 
-wikia_data = wikia_data %>%
+wikia_data = wikia_data %>% # Remember, mutate creates a new column based on current columns
   mutate(founding.date = as.Date(founding.date, format = '%Y-%m-%d'))
 
 # Check to make sure that looks OK.
@@ -89,13 +107,64 @@ summary(wikia_data)
 #################
 
 # After importing the data it's usually a good idea to plot some of the distributions.
+# This is another way to check that the data is what you think it is and there aren't surprises
 
-# First, let's see how many communities are created over time
+
+# To plot the distribution of non-date variables we can create histograms one at a time
+
+wikia_data %>%
+  ggplot() +
+  geom_histogram(aes(x=talk.density)) # Histograms don't need a y variable, since the count is on the y-axis
+  
+# Or we can use facets to look at all of them at once
+
+wikia_data %>%
+  select(-founding.date) %>%
+  gather() %>% # This puts the variables in a "long" format of key-value pairs
+  ggplot() +
+  facet_wrap(~ key, scales = 'free') + # This is that faceting that we looked at earlier
+  geom_histogram(aes(value)) # And this is what kind of plot to use
+
+# Sidenote: one nice thing about the pipe syntax is that if you get confused about what is going on
+# you can break it apart and look at the output from just one part of the pipeline, e.g.:
+wikia_data %>%
+  select(-founding.date) %>%
+  gather()
+
+# On the plot, notice that there is a big outlier in our DV, words added. Let's look at that one:
+wikia_data %>%
+  filter(words.added == max(words.added))
+
+# This just looks weird and this sort of extreme outlier can throw off our estimates so let's remove it.
+wikia_data = wikia_data %>%
+  filter(words.added != max(words.added))
+
+
+# Let's take a look at it again
+wikia_data %>%
+  ggplot() +
+  geom_histogram(aes(x=talk.density)) # Histograms don't need a y variable, since the count is on the y-axis
+
+# That's a little better, but still highly skewed. Why might that be?
+
+# We'll talk more about this when we talk about our regression analysis
+
+
+#### Exercise #####
+
+# Instead of a histogram, display density plots for all of the variables
+
+# Your code here
+  
+
+####################
+
+# We can also look at temporal changes to variables. First, let's see how many communities are created over time
 
 wikia_data %>%
   group_by(founding.date) %>%
-  tally() %>%
-  ggplot() +
+  tally() %>% # Count how many rows are in each group
+  ggplot() + # And visualize it
   geom_line(aes(x=founding.date, y = n))
 
 # That's odd. Let's look at those outliers.
@@ -115,41 +184,18 @@ summary(wikia_data)
 
 wikia_data2 = wikia_data %>%
   group_by(founding.date) %>%
-  filter(n() < 29)
-
-# To plot the distribution of non-date variables we can create histograms one at a time
-
-wikia_data2 %>%
-  ggplot() +
-  geom_histogram(aes(x=talk.density))
-  
-# Or we can use facets to look at all of them at once
-
-wikia_data2 %>%
-  select(-founding.date) %>%
-  gather() %>% # This puts the variables in a "long" format of key-value pairs
-  ggplot() +
-  facet_wrap(~ key, scales = 'free') + 
-  geom_histogram(aes(value))
+  filter(n() < 29) %>% # Filter the outliers
+  ungroup() # And change it so it isn't grouped anymore
 
 
-#### Exercise #####
-
-# Instead of a histogram, display density plots for all of the variables
-
-# Your code here
-  
-
-####################
-
-# Let's look at how the density of networks changes over time. Theoretically,
+# Let's also look at how the median number of words added changes over time. Theoretically,
 # there's no good reason to assume that it will change
 
 wikia_data2 %>%
   group_by(month=floor_date(founding.date, 'month')) %>% # This just groups by month instead of by day
-  summarize(med_density = median(talk.density, na.rm=T)) %>%
+  summarize(med_words = median(words.added)) %>%
   ggplot() + 
-  geom_line(aes(x=month, y=med_density))
+  geom_line(aes(x=month, y=med_words))
 
 
 # Do you have any theories about why this might be decreasing over time?
@@ -165,10 +211,11 @@ wikia_data2 %>%
 
 ####################
 
-# It's also useful to look at how some of these variables relate to each other.
+# It's also useful to look at how some of these variables relate to each other, since 
+# linear regression can suffer from multicollinearity.
 
 # It seems like the number of contributors could be correlated with the number of people
-# in groups in a bad way. It's easier to be in groups if there are a lot of people.
+# in groups. It's easier to be in groups if there are a lot of people.
 
 # Let's make a scatterplot of that relationship
 wikia_data2 %>%
@@ -177,7 +224,7 @@ wikia_data2 %>%
                            y=talk.kcore.gt.2)) + 
   scale_x_log10() # We log editors since it's so skewed
 
-
+# Is there a pattern in this relationship?
 
 #### Exercise ####
 
@@ -203,11 +250,20 @@ wikia_data2 %>%
   scale_y_log10()
 
 
-
 #### Exercise ####
 
 # Make a boxplot comparing the talk diameter and the words added.
 
+# Advanced exercise:
+# Make a facet plot with scatterplots for all of the variables by the words added.
+
+wikia_data2 %>%
+  gather(-words.added, key='key',value = 'value') %>%
+  ggplot() +
+  facet_wrap(~ key, scales = 'free') +
+  geom_point(mapping = aes(x=value,
+                           y=words.added)) + 
+  scale_x_log10() # Most of these are very skewed so we can log them
 
 
 
@@ -218,8 +274,6 @@ wikia_data2 %>%
 # Our goal is to predict the number of words added.
 # Remember that this is highly skewed count data so we use a negative binomial function
 
-# install.packages('MASS')
-library(MASS)
 
 fit <- glm.nb(words.added ~ talk.edits + talk.diameter + talk.density, data = wikia_data2)
 
