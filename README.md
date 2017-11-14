@@ -53,7 +53,7 @@ If everything installed correctly, then you should see a scatterplot appear at t
 
 **Download materials**
 
-Download the R files (session_one.R, session_two.R) and CSV file (wikia_data.csv) files from this page by right-clicking on them and saving them to somewhere you can find them during the workshop.
+Download the R files (session_one.R, session_two.R) and CSV file (wikia_data.csv) files from this page. The easiest way to do this is to click the "Clone or download" button on this page, and then "Download ZIP". You can then extract the files to somewhere you can find them during the workshop.
 
 
 # Thanks

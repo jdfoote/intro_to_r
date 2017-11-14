@@ -38,11 +38,11 @@ x = 1
 
 # stores the number 1 in the variable x. We can then do operations on x which change the value.
 
+# This is not bad math - it adds one to the variable
 x = x + 1
 
+# If we look at x, we can see that it now stores the number 2
 print(x)
-
-# This adds 1 to x, so now x stores the number 2.
 
 
 # Functions:
@@ -50,12 +50,20 @@ print(x)
 # Functions are little pieces of code that take variables as input and produce an output.
 
 add_one = function(n) {
-  return(n + 1)
+  n = n + 1
+  return(n)
 }
+
+multiply = function(x, y) {
+  z = x * y
+  return(z)
+}
+
 
 x = add_one(x)
 
 print(x) # Print is also a function!
+
 
 
 ##################
@@ -66,7 +74,11 @@ print(x) # Print is also a function!
 # We'll focus on the most common - importing CSVs
 
 # We won't use this data in this tutorial, but this is how you import a CSV
-wikia_data = read.csv('wikia_data.csv')
+# This sets the 'working directory' to a location on your computer. You will need to change it
+# to wherever you saved the files for this session.
+setwd('~/path/to/intro-to-R/') 
+
+wikia_data = read.csv('wikia_data.csv') 
 # And this is how you look at the first few rows to make sure it imported OK
 head(wikia_data)
 
@@ -117,6 +129,7 @@ select(flights, carrier:dep_delay, arr_delay)
 # Or remove columns with '-'
 select(flights, -(carrier:dep_delay))
 
+
 # You can even rename columns
 select(flights, carrier, minlate=arr_delay)
 
@@ -137,7 +150,8 @@ arrange(weather, desc(wind_dir), temp)
 ## mutate: create new columns
 # Add a column to indicate high wind
 tmp = select(weather, year:hour, wind_speed)
-tmp = mutate(tmp, high_wind = wind_speed > 30)
+tmp = mutate(tmp, high_wind = wind_speed > 30,
+             low_wind = wind_speed < 5)
 # And then filter to just those with high wind
 filter(tmp, high_wind == TRUE)
 

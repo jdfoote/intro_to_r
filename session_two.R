@@ -14,7 +14,7 @@ library(tidyverse)
 library(lubridate)
 
 
-wikia_data = read.csv('wikia_data.csv', 
+wikia_data = read.csv('~/Desktop/wikia_data.csv', 
                       sep = ',',
                       quote = '"')
 
@@ -72,6 +72,9 @@ wikia_data %>% # Take the data and pipe it
 wikia_data = wikia_data %>%
   filter(!is.na(talk.clustering.coef))
 
+wikia_data %>%
+  filter(!is.na(talk.clustering.coef))
+
 
 # We can also look at the data types
 str(wikia_data)
@@ -93,12 +96,15 @@ summary(wikia_data)
 # Your code here
 
 
-
-
 #### Exercise #####
 
 # Now create a new data frame called 'new_wikis' which only includes wikis whose last_edit_date is
 # after January 1, 2009.
+
+
+# Your code here
+
+###################
 
 
 
@@ -129,13 +135,17 @@ wikia_data %>%
 # you can break it apart and look at the output from just one part of the pipeline, e.g.:
 wikia_data %>%
   select(-founding.date) %>%
-  gather()
+  gather() %>%
+  head()
 
 # On the plot, notice that there is a big outlier in our DV, words added. Let's look at that one:
 wikia_data %>%
   filter(words.added == max(words.added))
 
-# This just looks weird and this sort of extreme outlier can throw off our estimates so let's remove it.
+# This looks weird; it is a ton of content added by only 9 people.
+# It is probably spam, so let's remove it.
+# Note: For an actual analyses, you would do all you could to figure out where
+# outliers come from before removing them
 wikia_data = wikia_data %>%
   filter(words.added != max(words.added))
 
@@ -143,11 +153,13 @@ wikia_data = wikia_data %>%
 # Let's take a look at it again
 wikia_data %>%
   ggplot() +
-  geom_histogram(aes(x=talk.density)) # Histograms don't need a y variable, since the count is on the y-axis
+  geom_histogram(aes(x=words.added)) # Histograms don't need a y variable, since the count is on the y-axis
+
 
 # That's a little better, but still highly skewed. Why might that be?
 
 # We'll talk more about this when we talk about our regression analysis
+
 
 
 #### Exercise #####
@@ -155,9 +167,12 @@ wikia_data %>%
 # Instead of a histogram, display density plots for all of the variables
 
 # Your code here
-  
+
 
 ####################
+
+
+
 
 # We can also look at temporal changes to variables. First, let's see how many communities are created over time
 
@@ -180,7 +195,7 @@ summary(wikia_data)
 # It's not totally clear what is going on here. The summary stats look similar, with 
 # the exception of the days from start to end and days from half to end.
 # It looks like there may be an error in the founding date. 
-# Let's create a new dataset that removes the outlier communities
+# Let's create a new dataset that removes the outlier communities.
 
 wikia_data2 = wikia_data %>%
   group_by(founding.date) %>%
@@ -201,15 +216,17 @@ wikia_data2 %>%
 # Do you have any theories about why this might be decreasing over time?
 
 
+
 #### Exercise #####
 
 # Plot the median clustering coefficient over time
 
 # Your code here
 
-
-
 ####################
+
+
+
 
 # It's also useful to look at how some of these variables relate to each other, since 
 # linear regression can suffer from multicollinearity.
@@ -226,6 +243,8 @@ wikia_data2 %>%
 
 # Is there a pattern in this relationship?
 
+
+
 #### Exercise ####
 
 # Density and diameter seem like they might also be closely related. Make a scatterplot of these two variables
@@ -237,8 +256,9 @@ wikia_data2 %>%
 # Now add the best fit line to the plot (see our last lesson for hints)
 
 
-
 ####################
+
+
 
 # Our goal is to predict the number of words added to the wiki so let's plot that relationship, too
 
@@ -250,20 +270,23 @@ wikia_data2 %>%
   scale_y_log10()
 
 
+
+
 #### Exercise ####
 
 # Make a boxplot comparing the talk diameter and the words added.
 
-# Advanced exercise:
-# Make a facet plot with scatterplots for all of the variables by the words added.
+# Your code here
 
-wikia_data2 %>%
-  gather(-words.added, key='key',value = 'value') %>%
-  ggplot() +
-  facet_wrap(~ key, scales = 'free') +
-  geom_point(mapping = aes(x=value,
-                           y=words.added)) + 
-  scale_x_log10() # Most of these are very skewed so we can log them
+
+### Advanced exercise ###
+# Make a faceted plot with scatterplots for all of the variables by the words added.
+
+
+# Your code here
+
+##################
+
 
 
 
@@ -275,7 +298,7 @@ wikia_data2 %>%
 # Remember that this is highly skewed count data so we use a negative binomial function
 
 
-fit <- glm.nb(words.added ~ talk.edits + talk.diameter + talk.density, data = wikia_data2)
+fit = glm.nb(words.added ~ talk.edits + talk.diameter + talk.density, data = wikia_data2)
 
 # Let's check the residual fit. This helps us know how well our model fits the data
 plot(density(resid(fit)))
@@ -283,6 +306,8 @@ qqnorm(resid(fit))
 
 # It looks like there are some outliers that might be skewing our data. It is often
 # acceptable to remove them
+# See https://stats.stackexchange.com/questions/175/how-should-outliers-be-dealt-with-in-linear-regression-analysis
+# for a discussion about other approaches
 
 cutoff =  3 * sd(resid(fit))
 
@@ -290,11 +315,16 @@ wikia_data3 = wikia_data2[abs(resid(fit)) < cutoff,] # This is the base R versio
 
 fit1 <- glm.nb(words.added ~ talk.edits + talk.diameter + talk.density, data = wikia_data3)
 
+summary(glm.nb(words.added ~ ., data = wikia_data3))
+
 qqnorm(resid(fit1))
 
 # This looks a lot better.
 
 summary(fit1)
+
+plot(wikia_data3$talk.density, resid(fit1))
+
 
 
 
@@ -315,3 +345,6 @@ summary(fit1)
 # Another option when dealing with skewed data is to dichotimize it.
 # Run a logistic regression predicting whether a wiki will have more or
 # less than the median number of words added.
+
+
+######################
