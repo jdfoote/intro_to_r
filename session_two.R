@@ -65,14 +65,12 @@ wikia_data %>% # Take the data and pipe it
 
 # For these wikis there is very little activity on the talk pages but it appears that
 # there is nothing wrong with the data. Because we're interested in talk networks
-# it seems reasonable to remove these
+# it seems reasonable to remove these.
+# Note: Be sure to note whatever data you don't include when reporting results
 
 # Overwrite the current wikia_data variable with a version of the dataframe that only
 # includes the non-NA items 
 wikia_data = wikia_data %>%
-  filter(!is.na(talk.clustering.coef))
-
-wikia_data %>%
   filter(!is.na(talk.clustering.coef))
 
 
